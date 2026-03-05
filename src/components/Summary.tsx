@@ -5,6 +5,7 @@ import { translations } from '../lib/translations';
 import { ArrowUpRight, ArrowDownLeft, Clock, BarChart3, TrendingUp, AlertTriangle, Users, RefreshCw } from 'lucide-react';
 import { formatCurrency, cn } from '../lib/utils';
 import { format, formatDistanceToNow } from 'date-fns';
+import { authFetch } from '../lib/authFetch';
 
 interface DashboardData {
   totalToReceive: number;
@@ -28,7 +29,7 @@ export function Summary() {
   const navigate = useNavigate();
 
   const load = () => {
-    fetch('/api/dashboard')
+    authFetch('/api/dashboard')
       .then(res => res.json())
       .then(data => setStats(data))
       .catch(err => console.error(err));

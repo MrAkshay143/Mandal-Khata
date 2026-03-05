@@ -4,6 +4,7 @@ import { cn } from '../lib/utils';
 import { format } from 'date-fns';
 import { useApp } from '../context/AppContext';
 import { translations } from '../lib/translations';
+import { authFetch } from '../lib/authFetch';
 
 interface EntryModalProps {
   isOpen: boolean;
@@ -33,7 +34,7 @@ export function EntryModal({ isOpen, onClose }: EntryModalProps) {
 
   useEffect(() => {
     if (isOpen) {
-      fetch('/api/customers')
+      authFetch('/api/customers')
         .then(res => res.json())
         .then(data => setCustomers(data))
         .catch(err => console.error(err));
@@ -84,7 +85,7 @@ export function EntryModal({ isOpen, onClose }: EntryModalProps) {
       const url = editingTransactionId ? `/api/transactions/${editingTransactionId}` : '/api/transactions';
       const method = editingTransactionId ? 'PUT' : 'POST';
 
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

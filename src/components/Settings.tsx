@@ -12,15 +12,15 @@ import {
   HelpCircle,
   ChevronRight,
   User,
-  Edit2,
   Download,
   Upload,
-  X,
-  Check,
   CheckCircle2,
   AlertCircle,
+  LogOut,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { authFetch } from '../lib/authFetch';
+import { ConfirmDialog } from './ConfirmDialog';
 
 // Toast component
 function Toast({ msg, type }: { msg: string; type: 'success' | 'error' }) {
@@ -37,12 +37,12 @@ function Toast({ msg, type }: { msg: string; type: 'success' | 'error' }) {
 
 export function Settings() {
   const navigate = useNavigate();
-  const { language, setLanguage, theme, setTheme, ownerName, setOwnerName } = useApp();
+  const { language, setLanguage, theme, setTheme, user, logout } = useApp();
   const t = translations[language];
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [tempName, setTempName] = useState(ownerName);
+  const ownerName = user?.name || 'User';
   const [showBackup, setShowBackup] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const showToast = (msg: string, type: 'success' | 'error') => {
@@ -56,18 +56,11 @@ export function Settings() {
     { code: 'hi', label: t.hindi },
   ];
 
-  const handleSaveName = () => {
-    if (tempName.trim()) {
-      setOwnerName(tempName.trim());
-      setIsEditingName(false);
-    }
-  };
-
   const handleBackup = async () => {
     try {
-      const customersRes = await fetch('/api/customers');
+      const customersRes = await authFetch('/api/customers');
       const customers = await customersRes.json();
-      const entriesRes = await fetch('/api/entries');
+      const entriesRes = await authFetch('/api/entries');
       const entries = await entriesRes.json();
       const backupData = { customers, entries, ownerName, language, theme, timestamp: new Date().toISOString() };
       const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
@@ -94,7 +87,7 @@ export function Settings() {
       try {
         const data = JSON.parse(event.target?.result as string);
         if (!data.customers || !data.entries) throw new Error('Invalid format');
-        const res = await fetch('/api/restore', {
+        const res = await authFetch('/api/restore', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
@@ -121,6 +114,19 @@ export function Settings() {
       </div>
 
       <div className="flex-1 p-4 space-y-5 overflow-y-auto">
+        <ConfirmDialog
+          isOpen={showLogoutConfirm}
+          onClose={() => setShowLogoutConfirm(false)}
+          onConfirm={() => {
+            logout();
+            window.location.href = '/login';
+          }}
+          title="Log out"
+          message="Are you sure you want to log out from this device?"
+          confirmLabel="Log out"
+          variant="danger"
+          icon={<LogOut className="w-6 h-6" />}
+        />
         {/* Profile Section */}
         <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-zinc-800 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4 flex-1">
@@ -128,38 +134,23 @@ export function Settings() {
               <User className="w-7 h-7" />
             </div>
             <div className="flex-1 min-w-0">
-              {isEditingName ? (
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={tempName}
-                    onChange={(e) => setTempName(e.target.value)}
-                    className="w-full bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-lg px-2 py-1 text-sm font-bold text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500"
-                    autoFocus
-                  />
-                  <button onClick={handleSaveName} className="p-1.5 bg-emerald-600 text-white rounded-lg">
-                    <Check className="w-4 h-4" />
-                  </button>
-                  <button onClick={() => setIsEditingName(false)} className="p-1.5 bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-zinc-300 rounded-lg">
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <h2 className="font-bold text-gray-900 dark:text-white text-lg truncate">{ownerName}</h2>
-                  <p className="text-xs text-gray-500 dark:text-zinc-400">{t.businessOwner}</p>
-                </>
+              <h2 className="font-bold text-gray-900 dark:text-white text-lg truncate">{ownerName}</h2>
+              <p className="text-xs text-gray-500 dark:text-zinc-400">{user?.email}</p>
+              {user && !user.emailVerified && (
+                <span className="text-[10px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-2 py-0.5 rounded-full">⚠ Email not verified</span>
+              )}
+              {user?.emailVerified && (
+                <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-full">✓ Verified</span>
               )}
             </div>
           </div>
-          {!isEditingName && (
-            <button
-              onClick={() => { setTempName(ownerName); setIsEditingName(true); }}
-              className="p-2 text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
-            >
-              <Edit2 className="w-5 h-5" />
-            </button>
-          )}
+          <button
+            onClick={() => setShowLogoutConfirm(true)}
+            className="p-2 text-red-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+            title="Logout"
+          >
+            <LogOut className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Appearance */}

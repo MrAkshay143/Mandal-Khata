@@ -1,0 +1,17 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Standard Hostinger reverse proxy rule for Node.js apps
+  # (Requires Node server running on port 3000; update if Hostinger assigns a different port)
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^(.*)$ http://127.0.0.1:3000/$1 [P,L]
+</IfModule>
+
+# If using Hostinger Passenger Node.js app instead:
+<IfModule mod_passenger.c>
+  PassengerEnabled on
+  PassengerAppType node
+  PassengerStartupFile server.ts
+</IfModule>

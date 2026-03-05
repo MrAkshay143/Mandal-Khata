@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/favicon.ico" width="80" alt="Mandal Khata Logo" />
   <h1>Mandal Khata</h1>
-  <p><strong>A Modern, Offline-First Digital Ledger (Khata) Application</strong></p>
+  <p><strong>A Modern, Full-Stack Digital Ledger (Khata) Application</strong></p>
 
 <p>
     <a href="#features">Features</a> •
@@ -23,8 +23,11 @@ zero-learning-curve PWA (Progressive Web Application).
 
 ## ✨ Features
 
-- **Offline First:** Fast offline usage with no forced cloud-sync or internet
-  dependencies. Data stays on your device!
+- **Full-Stack Architecture:** Secure, robust Node.js and Express backend backed
+  by a MySQL database.
+- **RESTful API:** Clean API structure with robust Zod validation.
+- **PDF Reports:** Generate detailed, downloadable PDF ledger summaries
+  automatically.
 - **Multi-language Support:** Easily toggle between English, Bengali, and Hindi.
 - **Beautiful UI/UX:** Clean, intuitive, modern interface featuring smooth
   animations and a responsive dashboard that works flawlessly on web and mobile.
@@ -37,18 +40,21 @@ zero-learning-curve PWA (Progressive Web Application).
   receipts to your customers instantly via WhatsApp or native Messaging apps.
 - **Security & Privacy:** Complete privacy. No email logins, no analytics
   tracking, no external data collection.
-- **Backups:** Full encrypted local JSON backups allow you to move your data
-  around securely.
+- **Backups & Security:** Native backend soft-deletes and database indexing
+  ensure safe, reliable, and recoverable records.
+- **Admin Dashboard:** Review total user statistics and platform performance
+  securely.
 
 ## 🛠 Tech Stack
 
-| Technology       | Description                                        |
-| ---------------- | -------------------------------------------------- |
-| **Vite**         | Next-generation, lightning-fast frontend tooling.  |
-| **React 18**     | Robust component-driven UI handling.               |
-| **Tailwind CSS** | Utility-first, highly customizable styling engine. |
-| **Lucide Icons** | Beautiful, clean iconography.                      |
-| **TypeScript**   | Strict type-checking built on Javascript.          |
+| Technology            | Description                                         |
+| --------------------- | --------------------------------------------------- |
+| **Vite & React 18**   | Next-generation, lightning-fast frontend UI.        |
+| **Tailwind CSS**      | Utility-first, highly customizable styling engine.  |
+| **Node.js & Express** | Powerful, structured modular backend.               |
+| **MySQL2**            | Fast and safe database driver for persistence.      |
+| **Zod & PDFKit**      | Type-safe validations and dynamic report generation |
+| **TypeScript**        | Strict type-checking built on Javascript.           |
 
 ## 🚀 Getting Started
 
@@ -69,24 +75,47 @@ Make sure you have [Node.js](https://nodejs.org) installed on your system.
    npm install
    ```
 
-3. Run the development server:
+3. Setup your Environment Variables (`.env`):
+   ```env
+   NODE_ENV=development
+   PORT=3000
+   APP_URL=http://localhost:3000
+
+   DB_HOST=localhost
+   DB_PORT=3306
+   DB_USER=root
+   DB_PASSWORD=
+   DB_NAME=mandal_khata
+
+   JWT_SECRET=your_super_secret_key
+   JWT_EXPIRY=7d
+
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_USER=your_email@gmail.com
+   SMTP_PASS=your_app_password
+   SMTP_FROM=your_email@gmail.com
+   ```
+
+4. Run the development server (Frontend + Backend):
    ```bash
    npm run dev
    ```
 
-4. Build for Production:
+5. Build for Production:
    ```bash
    npm run build
+   npm start
    ```
 
 ## 🔒 Privacy Guarantee
 
 Mandal Khata treats user data with the utmost respect.
 
-- **No Analytics:** We do not record any telemetry or usage patterns.
-- **Zero Cloud Storage:** Your database physically resides within your
-  browser/app storage.
-- **No Sign-ups:** Use the app anonymously.
+- **No Unwanted Telemetry:** We do not record any hidden telemetry or usage
+  patterns.
+- **Secure Persistence:** Your ledger data remains strictly isolated in your
+  database.
 
 ## 👨‍💻 Developed By
 

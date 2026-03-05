@@ -5,6 +5,7 @@ import { cn, formatCurrency } from '../lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { useApp } from '../context/AppContext';
 import { translations } from '../lib/translations';
+import { authFetch } from '../lib/authFetch';
 
 interface Customer {
   id: number;
@@ -23,7 +24,7 @@ export function CustomerList() {
   const t = translations[language];
 
   useEffect(() => {
-    fetch('/api/customers')
+    authFetch('/api/customers')
       .then(res => res.json())
       .then(data => setCustomers(data))
       .catch(err => console.error(err));

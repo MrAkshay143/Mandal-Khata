@@ -2,6 +2,7 @@ import { useState, useEffect, FormEvent } from 'react';
 import { X, Check, User, Phone } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { translations } from '../lib/translations';
+import { authFetch } from '../lib/authFetch';
 
 interface CustomerModalProps {
   isOpen: boolean;
@@ -37,7 +38,7 @@ export function CustomerModal({ isOpen, onClose, customer }: CustomerModalProps)
       const url = customer ? `/api/customers/${customer.id}` : '/api/customers';
       const method = customer ? 'PUT' : 'POST';
 
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, mobile })

@@ -8,6 +8,7 @@ import { cn, formatCurrency } from '../lib/utils';
 import { format, isToday, isYesterday, isTomorrow, startOfDay } from 'date-fns';
 import { useApp } from '../context/AppContext';
 import { translations, type TranslationType } from '../lib/translations';
+import { authFetch } from '../lib/authFetch';
 
 interface Transaction {
   id: number;
@@ -49,14 +50,15 @@ export function CustomerChat() {
   // ── Load data ──────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!customerId) return;
-    fetch(`/api/transactions/${customerId}`)
+    authFetch(`/api/transactions/${customerId}`)
       .then(res => res.json())
       .then(data => {
         setCustomer(data.customer);
         let balance = 0;
         const withBalance = data.transactions.map((tx: Transaction) => {
-          balance += tx.type === 'GAVE' ? tx.amount : -tx.amount;
-          return { ...tx, running_balance: balance };
+          const amt = Number(tx.amount); // MySQL2 returns DECIMAL as string
+          balance += tx.type === 'GAVE' ? amt : -amt;
+          return { ...tx, amount: amt, running_balance: balance };
         });
         setTransactions(withBalance);
         setLoading(false);
@@ -154,7 +156,7 @@ export function CustomerChat() {
   const confirmDelete = async () => {
     try {
       await Promise.all(
-        [...selectedIds].map(id => fetch(`/api/transactions/${id}`, { method: 'DELETE' }))
+        [...selectedIds].map(id => authFetch(`/api/transactions/${id}`, { method: 'DELETE' }))
       );
       setDeleteConfirmOpen(false);
       clearSelection();

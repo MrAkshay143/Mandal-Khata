@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useState, useEffect, ReactNode } from 'react';
 import { CustomerList } from './components/CustomerList';
 import { CustomerChat } from './components/CustomerChat';
@@ -9,6 +9,11 @@ import { CustomerModal } from './components/CustomerModal';
 import { SplashScreen } from './components/SplashScreen';
 import { HelpPage } from './components/HelpPage';
 import { PrivacyPage } from './components/PrivacyPage';
+import { AuthGuard } from './components/AuthGuard';
+import { VerificationPopup } from './components/VerificationPopup';
+import { LoginPage } from './pages/LoginPage';
+import { RegisterPage } from './pages/RegisterPage';
+import { EmailVerifyPage } from './pages/EmailVerifyPage';
 import { LayoutDashboard, Users, UserPlus, Settings as SettingsIcon } from 'lucide-react';
 import { cn } from './lib/utils';
 import { AppProvider, useApp } from './context/AppContext';
@@ -17,16 +22,24 @@ import { translations } from './lib/translations';
 function Layout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { language } = useApp();
+  const { language, user } = useApp();
   const t = translations[language];
   const [isEntryModalOpen, setIsEntryModalOpen] = useState(false);
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<any>(null);
+  const [showVerificationPopup, setShowVerificationPopup] = useState(false);
   const { triggerRefresh } = useApp();
 
   // Listen for custom events to open modals
   useEffect(() => {
-    const handleOpenEntry = () => setIsEntryModalOpen(true);
+    const handleOpenEntry = () => {
+      // Check email verification before allowing entry
+      if (user && !user.emailVerified) {
+        setShowVerificationPopup(true);
+        return;
+      }
+      setIsEntryModalOpen(true);
+    };
     const handleOpenCustomer = (e: CustomEvent) => {
       setEditingCustomer(e.detail?.customer || null);
       setIsCustomerModalOpen(true);
@@ -39,7 +52,7 @@ function Layout({ children }: { children: ReactNode }) {
       window.removeEventListener('open-add-entry' as any, handleOpenEntry);
       window.removeEventListener('open-customer-modal' as any, handleOpenCustomer);
     };
-  }, []);
+  }, [user]);
 
   const isChatScreen = location.pathname.startsWith('/chat/');
   const isFullScreenPage = isChatScreen || location.pathname === '/help' || location.pathname === '/privacy';
@@ -115,6 +128,7 @@ function Layout({ children }: { children: ReactNode }) {
           onClose={() => setIsCustomerModalOpen(false)}
           customer={editingCustomer}
         />
+        <VerificationPopup isOpen={showVerificationPopup} onClose={() => setShowVerificationPopup(false)} />
       </div>
     </div>
   );
@@ -122,6 +136,7 @@ function Layout({ children }: { children: ReactNode }) {
 
 function MainApp() {
   const [showSplash, setShowSplash] = useState(true);
+  const { token } = useApp();
 
   if (showSplash) {
     return (
@@ -135,16 +150,28 @@ function MainApp() {
 
   return (
     <BrowserRouter>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<CustomerList />} />
-          <Route path="/chat/:customerId" element={<CustomerChat />} />
-          <Route path="/summary" element={<Summary />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/help" element={<HelpPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
-        </Routes>
-      </Layout>
+      <Routes>
+        {/* Public routes */}
+        <Route path="/login" element={token ? <Navigate to="/" replace /> : <LoginPage />} />
+        <Route path="/register" element={token ? <Navigate to="/" replace /> : <RegisterPage />} />
+        <Route path="/verify-email" element={<EmailVerifyPage />} />
+
+        {/* Protected routes — wrapped in AuthGuard */}
+        <Route path="/*" element={
+          <AuthGuard>
+            <Layout>
+              <Routes>
+                <Route path="/" element={<CustomerList />} />
+                <Route path="/chat/:customerId" element={<CustomerChat />} />
+                <Route path="/summary" element={<Summary />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/help" element={<HelpPage />} />
+                <Route path="/privacy" element={<PrivacyPage />} />
+              </Routes>
+            </Layout>
+          </AuthGuard>
+        } />
+      </Routes>
     </BrowserRouter>
   );
 }

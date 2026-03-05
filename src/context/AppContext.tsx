@@ -3,6 +3,13 @@ import { createContext, useContext, useState, ReactNode, useEffect } from 'react
 export type Language = 'en' | 'bn' | 'hi';
 export type Theme = 'light' | 'dark';
 
+export interface AppUser {
+  id: number;
+  name: string;
+  email: string;
+  emailVerified: boolean;
+}
+
 interface AppContextType {
   refreshTrigger: number;
   triggerRefresh: () => void;
@@ -12,6 +19,11 @@ interface AppContextType {
   setTheme: (theme: Theme) => void;
   ownerName: string;
   setOwnerName: (name: string) => void;
+  // Auth
+  token: string | null;
+  user: AppUser | null;
+  login: (token: string, user: AppUser) => void;
+  logout: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -24,21 +36,37 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
     return (localStorage.getItem('mandal-khata-theme') as Theme) || 'light';
   });
-  const [ownerName, setOwnerName] = useState(() => {
-    return localStorage.getItem('mandal-khata-owner') || 'Akshay Mondal';
+
+  // Auth state
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('mk_token'));
+  const [user, setUser] = useState<AppUser | null>(() => {
+    const saved = localStorage.getItem('mk_user');
+    return saved ? JSON.parse(saved) : null;
   });
 
-  const triggerRefresh = () => {
-    setRefreshTrigger(prev => prev + 1);
+  // Owner name derived from user
+  const ownerName = user?.name || 'User';
+  const setOwnerName = (_name: string) => {}; // No-op, name comes from server
+
+  const triggerRefresh = () => setRefreshTrigger(prev => prev + 1);
+
+  const login = (newToken: string, newUser: AppUser) => {
+    localStorage.setItem('mk_token', newToken);
+    localStorage.setItem('mk_user', JSON.stringify(newUser));
+    setToken(newToken);
+    setUser(newUser);
+  };
+
+  const logout = () => {
+    localStorage.removeItem('mk_token');
+    localStorage.removeItem('mk_user');
+    setToken(null);
+    setUser(null);
   };
 
   useEffect(() => {
     localStorage.setItem('mandal-khata-lang', language);
   }, [language]);
-
-  useEffect(() => {
-    localStorage.setItem('mandal-khata-owner', ownerName);
-  }, [ownerName]);
 
   useEffect(() => {
     localStorage.setItem('mandal-khata-theme', theme);
@@ -49,16 +77,38 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [theme]);
 
+  // Refresh user info from server if token exists
+  useEffect(() => {
+    if (!token) return;
+    fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => {
+        if (res.status === 401) { logout(); return null; }
+        return res.json();
+      })
+      .then(data => {
+        if (data && data.id) {
+          const updated: AppUser = { id: data.id, name: data.name, email: data.email, emailVerified: data.emailVerified };
+          setUser(updated);
+          localStorage.setItem('mk_user', JSON.stringify(updated));
+        }
+      })
+      .catch(() => {});
+  }, [token]);
+
   return (
-    <AppContext.Provider value={{ 
-      refreshTrigger, 
-      triggerRefresh, 
-      language, 
-      setLanguage, 
-      theme, 
+    <AppContext.Provider value={{
+      refreshTrigger,
+      triggerRefresh,
+      language,
+      setLanguage,
+      theme,
       setTheme,
       ownerName,
-      setOwnerName
+      setOwnerName,
+      token,
+      user,
+      login,
+      logout,
     }}>
       {children}
     </AppContext.Provider>
