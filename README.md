@@ -77,15 +77,15 @@ Make sure you have [Node.js](https://nodejs.org) installed on your system.
 
 3. Setup your Environment Variables (`.env`):
    ```env
-   NODE_ENV=development
+   NODE_ENV=production
    PORT=3000
-   APP_URL=http://localhost:3000
+   APP_URL=https://khata.yourcart.in
 
-   DB_HOST=localhost
+   DB_HOST=127.0.0.1
    DB_PORT=3306
-   DB_USER=root
-   DB_PASSWORD=
-   DB_NAME=mandal_khata
+   DB_USER=u581617111_khata
+   DB_PASSWORD=Khata@2026
+   DB_NAME=u581617111_khata
 
    JWT_SECRET=your_super_secret_key
    JWT_EXPIRY=7d
