@@ -5,12 +5,12 @@ export const createTransactionSchema = z.object({
   type: z.enum(['GAVE', 'GOT'], { message: 'Type must be GAVE or GOT' }),
   amount: z.number().positive('Amount must be positive'),
   description: z.string().optional(),
-  date: z.string().datetime().optional()
+  date: z.string().optional()
 });
 
 export const updateTransactionSchema = z.object({
   type: z.enum(['GAVE', 'GOT'], { message: 'Type must be GAVE or GOT' }),
   amount: z.number().positive(),
   description: z.string().optional(),
-  date: z.string().datetime().optional()
+  date: z.string().optional()
 });

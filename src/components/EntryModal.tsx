@@ -93,7 +93,7 @@ export function EntryModal({ isOpen, onClose }: EntryModalProps) {
           type,
           amount: parseFloat(amount),
           description,
-          date: `${date}T${time}:00`
+          date: `${date} ${time}:00`
         })
       });
 
