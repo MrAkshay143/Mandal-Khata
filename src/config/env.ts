@@ -1,6 +1,18 @@
 import dotenv from 'dotenv';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const rootDir = path.resolve(__dirname, '../../');
+
+// Try loading .env.local first (for local dev overrides), then fallback to .env
+if (fs.existsSync(path.join(rootDir, '.env.local'))) {
+  dotenv.config({ path: path.join(rootDir, '.env.local') });
+} else {
+  dotenv.config();
+}
 
 export const ENV = {
   PORT: Number(process.env.PORT) || 3000,

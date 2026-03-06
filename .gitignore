@@ -21,3 +21,4 @@ Thumbs.db
 *.db
 *.sqlite
 data/
+.env.local
