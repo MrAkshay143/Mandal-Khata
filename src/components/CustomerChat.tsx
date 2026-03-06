@@ -50,20 +50,21 @@ export function CustomerChat() {
   // ── Load data ──────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!customerId) return;
+    setLoading(true);
     authFetch(`/api/transactions/${customerId}`)
       .then(res => res.json())
       .then(data => {
         setCustomer(data.customer);
         let balance = 0;
-        const withBalance = data.transactions.map((tx: Transaction) => {
+        const withBalance = (data.transactions || []).map((tx: Transaction) => {
           const amt = Number(tx.amount); // MySQL2 returns DECIMAL as string
           balance += tx.type === 'GAVE' ? amt : -amt;
           return { ...tx, amount: amt, running_balance: balance };
         });
         setTransactions(withBalance);
-        setLoading(false);
       })
-      .catch(console.error);
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, [customerId, refreshTrigger]);
 
   useEffect(() => {
