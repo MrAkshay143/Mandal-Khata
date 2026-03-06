@@ -10,10 +10,20 @@ var __export = (target, all) => {
 
 // src/config/env.ts
 import dotenv from "dotenv";
-var ENV;
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+var __filename, __dirname, rootDir, ENV;
 var init_env = __esm({
   "src/config/env.ts"() {
-    dotenv.config();
+    __filename = fileURLToPath(import.meta.url);
+    __dirname = path.dirname(__filename);
+    rootDir = path.resolve(__dirname, "../../");
+    if (fs.existsSync(path.join(rootDir, ".env.local"))) {
+      dotenv.config({ path: path.join(rootDir, ".env.local") });
+    } else {
+      dotenv.config();
+    }
     ENV = {
       PORT: Number(process.env.PORT) || 3e3,
       NODE_ENV: process.env.NODE_ENV || "development",
@@ -169,8 +179,8 @@ init_env();
 init_db();
 import express from "express";
 import { createServer as createViteServer } from "vite";
-import path from "path";
-import { fileURLToPath } from "url";
+import path2 from "path";
+import { fileURLToPath as fileURLToPath2 } from "url";
 
 // src/utils/logger.ts
 import winston from "winston";
@@ -1247,8 +1257,8 @@ router4.put("/credentials", adminController.updateCredentials);
 var adminRoutes_default = router4;
 
 // server.ts
-var __filename = fileURLToPath(import.meta.url);
-var __dirname = path.dirname(__filename);
+var __filename2 = fileURLToPath2(import.meta.url);
+var __dirname2 = path2.dirname(__filename2);
 async function startServer() {
   const app = express();
   const PORT = ENV.PORT;
@@ -1259,9 +1269,9 @@ async function startServer() {
     logger.error("Database initialization failed. Please check config:", err);
     process.exit(1);
   }
-  app.use("/admin", express.static(path.join(__dirname, "admin")));
+  app.use("/admin", express.static(path2.join(__dirname2, "admin")));
   app.get("/admin", (_req, res) => {
-    res.sendFile(path.join(__dirname, "admin", "index.html"));
+    res.sendFile(path2.join(__dirname2, "admin", "index.html"));
   });
   app.use("/api/auth", authRoutes_default);
   app.use("/api/customers", customerRoutes_default);
@@ -1290,9 +1300,9 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    app.use(express.static(path.join(__dirname, "dist")));
+    app.use(express.static(path2.join(__dirname2, "dist")));
     app.get("*", (_req, res) => {
-      res.sendFile(path.join(__dirname, "dist", "index.html"));
+      res.sendFile(path2.join(__dirname2, "dist", "index.html"));
     });
   }
   app.listen(PORT, "0.0.0.0", () => {
